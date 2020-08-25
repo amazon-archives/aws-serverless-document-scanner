@@ -64,7 +64,7 @@ export default {
       if(!val){
         this.name = null
         this.proj = null
-        this.pageNumber = null
+        this.pageNumber = 1
       }else {
         this.proj = val;
         this.name = val.project_name;
@@ -101,7 +101,9 @@ export default {
       this.imageData = null
     },
     deleteProject: function (name) {
-      this.$emit('delete', name)
+      if(confirm('Are you sure?')){
+        this.$emit('delete', name)
+      }
     },
     generatePDF: function (name) {
       this.$emit('generate', name)
