@@ -1,5 +1,8 @@
 # aws-serverless-document-scanner
 
+![Screenshot](https://raw.githubusercontent.com/aws-samples/aws-serverless-document-scanner/master/screenshot.png)
+
+
 An example serverless application for using Amazon Textract, AWS Amplify, Amazon API Gateway, AWS Lambda, Amazon S3, Amazon Cognito, and Amazon DynamoDB to create a document scanner application. Users can register, login, create projects, and upload images of text and generate a downloadable PDF of the detected text. 
 
 
