@@ -1,0 +1,201 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  document-scanner
+
+
+Parameters:
+  UserPoolID:
+    Type: String
+    Description: (Required) The user pool ID created by the Amplify frontend.
+
+  UserFileBucket:
+    Type: String
+    Description: (Required) The bucket where all the user files are stored.
+
+Globals:
+  Api:
+    Cors:
+      AllowMethods: "'*'"
+      AllowHeaders: "'*'"
+      AllowOrigin: "'*'"
+
+Resources:
+
+  DocumentScannerAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPoolID}'
+            Identity:
+              Header: Authorization
+        AddDefaultAuthorizerToCorsPreflight: False
+
+  GeneratePDF:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.handler
+      Runtime: python3.8
+      CodeUri: lambda_functions/generatePDF/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PagesTable
+      Environment:
+        Variables:
+          PAGES_TABLE_NAME: !Ref PagesTable
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            RestApiId: !Ref DocumentScannerAPI
+            Path: /pages/pdf/{project+}
+            Method: get   
+  
+  ProcessDocument:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.handler
+      Runtime: python3.8
+      CodeUri: lambda_functions/processDocument/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PagesTable
+        - TextractPolicy: {}
+        - S3ReadPolicy:
+            BucketName: !Ref UserFileBucket
+      Environment:
+        Variables:
+          PAGES_TABLE_NAME: !Ref PagesTable
+  
+  CreateProject:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.handler
+      Runtime: python3.8
+      CodeUri: lambda_functions/createProject/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectsTable
+      Environment:
+        Variables:
+          PROJECTS_TABLE_NAME: !Ref ProjectsTable
+      Events:
+        PostResource:
+          Type: Api
+          Properties:
+            RestApiId: !Ref DocumentScannerAPI
+            Path: /projects
+            Method: post   
+  
+  FetchPageCount:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.handler
+      Runtime: python3.8
+      CodeUri: lambda_functions/fetchPageCount/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PagesTable
+      Environment:
+        Variables:
+          PAGES_TABLE_NAME: !Ref PagesTable
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            RestApiId: !Ref DocumentScannerAPI
+            Path: /pages/count/{project+}
+            Method: get  
+  
+  DeleteProject:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.handler
+      Runtime: python3.8
+      CodeUri: lambda_functions/deleteProject/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PagesTable
+        - S3CrudPolicy:
+            BucketName: !Ref UserFileBucket
+      Environment:
+        Variables:
+          PROJECTS_TABLE_NAME: !Ref ProjectsTable
+          PAGES_TABLE_NAME: !Ref PagesTable
+          BUCKET_NAME: !Ref UserFileBucket
+      Events:
+        PostResource:
+          Type: Api
+          Properties:
+            RestApiId: !Ref DocumentScannerAPI
+            Path: /projects/delete
+            Method: post   
+
+  FetchProjects:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.handler
+      Runtime: python3.8
+      CodeUri: lambda_functions/fetchProjects/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectsTable
+      Environment:
+        Variables:
+          PROJECTS_TABLE_NAME: !Ref ProjectsTable
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            RestApiId: !Ref DocumentScannerAPI
+            Path: /projects
+            Method: get
+  
+  ProjectsTable:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - 
+          AttributeName: "username"
+          AttributeType: "S"
+        - 
+          AttributeName: "project_name"
+          AttributeType: "S"
+      KeySchema: 
+        - AttributeName: username
+          KeyType: HASH
+        - AttributeName: project_name
+          KeyType: RANGE
+      ProvisionedThroughput: 
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+
+  PagesTable:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - 
+          AttributeName: "project"
+          AttributeType: "S"
+        - 
+          AttributeName: "page"
+          AttributeType: "N"
+      KeySchema: 
+        - AttributeName: project
+          KeyType: HASH
+        - AttributeName: page
+          KeyType: RANGE
+      ProvisionedThroughput: 
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+
+Outputs:
+  ApiURL:
+    Description: "API endpoint URL for Prod environment"
+    Value: !Sub "https://${DocumentScannerAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod"

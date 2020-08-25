@@ -1,0 +1,14 @@
+setup.cfg
+setup.py
+fpdf/__init__.py
+fpdf/fonts.py
+fpdf/fpdf.py
+fpdf/html.py
+fpdf/php.py
+fpdf/py3k.py
+fpdf/template.py
+fpdf/ttfonts.py
+fpdf.egg-info/PKG-INFO
+fpdf.egg-info/SOURCES.txt
+fpdf.egg-info/dependency_links.txt
+fpdf.egg-info/top_level.txt

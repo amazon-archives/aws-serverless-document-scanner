@@ -1,0 +1,28 @@
+Metadata-Version: 1.2
+Name: fpdf
+Version: 1.7.2
+Summary: Simple PDF generation for Python
+Home-page: http://code.google.com/p/pyfpdf
+Author: Olivier PLATHEY ported by Max
+Author-email: maxpat78@yahoo.it
+Maintainer: Mariano Reingart
+Maintainer-email: reingart@gmail.com
+License: LGPLv3+
+Download-URL: https://github.com/reingart/pyfpdf/tarball/1.7.2
+Description: UNKNOWN
+Keywords: pdf,unicode,png,jpg,ttf
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.5
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.2
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Software Development :: Libraries :: PHP Classes
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Multimedia :: Graphics
