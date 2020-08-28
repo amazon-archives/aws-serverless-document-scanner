@@ -106,7 +106,6 @@ export default {
         .then(response => {
           console.log(response)
           if(response.length > 0){
-            console.log('hi')
             this.projects = response;
           }else {
             this.projects = null;

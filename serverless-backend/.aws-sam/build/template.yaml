@@ -35,7 +35,7 @@ Resources:
     Properties:
       Handler: app.handler
       Runtime: python3.8
-      CodeUri: s3://iot-test-mo/f99e0883d6eef3dbfd13d46a66534f5a
+      CodeUri: GeneratePDF
       Layers:
       - Ref: FPDFLayer
       Policies:
@@ -59,7 +59,7 @@ Resources:
     Properties:
       LayerName: document-scanner-dependencies
       Description: Dependencies for Document Scanner GeneratePDF function
-      ContentUri: s3://iot-test-mo/b8df6ea31736a54df0f8488ba9946a96
+      ContentUri: ../../dependencies
       CompatibleRuntimes:
       - python3.8
       LicenseInfo: MIT
@@ -69,7 +69,7 @@ Resources:
     Properties:
       Handler: app.handler
       Runtime: python3.8
-      CodeUri: s3://iot-test-mo/88f5d57455442a0ba5a871957ed6c14a
+      CodeUri: ProcessDocument
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -87,7 +87,7 @@ Resources:
     Properties:
       Handler: app.handler
       Runtime: python3.8
-      CodeUri: s3://iot-test-mo/31b26c3ba87a912b305058c036017fbe
+      CodeUri: CreateProject
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -109,7 +109,7 @@ Resources:
     Properties:
       Handler: app.handler
       Runtime: python3.8
-      CodeUri: s3://iot-test-mo/99780ad0e9c0348ecb0d910782beba2d
+      CodeUri: FetchPageCount
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -131,7 +131,7 @@ Resources:
     Properties:
       Handler: app.handler
       Runtime: python3.8
-      CodeUri: s3://iot-test-mo/bef01330df0af2a04c5a4285de074804
+      CodeUri: DeleteProject
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -163,7 +163,7 @@ Resources:
     Properties:
       Handler: app.handler
       Runtime: python3.8
-      CodeUri: s3://iot-test-mo/f9d3954a3480d9911ceac155963bcbaa
+      CodeUri: FetchProjects
       Policies:
       - DynamoDBCrudPolicy:
           TableName:

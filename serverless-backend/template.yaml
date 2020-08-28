@@ -41,6 +41,8 @@ Resources:
       Handler: app.handler
       Runtime: python3.8
       CodeUri: lambda_functions/generatePDF/
+      Layers:
+        - !Ref FPDFLayer
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref PagesTable
@@ -54,6 +56,17 @@ Resources:
             RestApiId: !Ref DocumentScannerAPI
             Path: /pages/pdf/{project+}
             Method: get   
+  
+  FPDFLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+        LayerName: document-scanner-dependencies
+        Description: Dependencies for Document Scanner GeneratePDF function
+        ContentUri: dependencies/
+        CompatibleRuntimes:
+          - python3.8
+        LicenseInfo: 'MIT'
+        RetentionPolicy: Retain
   
   ProcessDocument:
     Type: AWS::Serverless::Function
