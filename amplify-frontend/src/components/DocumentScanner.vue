@@ -1,6 +1,11 @@
 <template>
   <div class="documentScanner">
     <div class="ds">
+      <div class="logo">
+        <Icon name="file-alt" color="#f90" scale="3" />
+        <div class="logoText"><h3>Document<br />Scanner</h3></div>
+      </div>
+      
       <input v-model="projectName" />
       <button v-on:click="create(projectName)">
         Create Project
@@ -10,6 +15,7 @@
         <ProjectList 
           @select="selectProject"
           v-bind:project-list="projects"
+          v-show="projects != null"
           ref="projectListRef"
         />
         <Project 
@@ -29,11 +35,13 @@
 </template>
 
 <script>
-
+import Icon from 'vue-awesome/components/Icon'
+import 'vue-awesome/icons/file-alt'
 import { Auth, API } from 'aws-amplify'
 import ProjectList from './ProjectList.vue'
 import download from 'downloadjs'
 import Project from './Project.vue'
+
 
 let apiName = 'DocumentScannerAPI';
 
@@ -41,7 +49,8 @@ export default {
   name: 'DocumentScanner',
   components: {
     ProjectList,
-    Project
+    Project,
+    Icon
   },
   data() {
     return {
@@ -96,7 +105,12 @@ export default {
         .get(apiName, path, {})
         .then(response => {
           console.log(response)
-          this.projects = response;
+          if(response.length > 0){
+            console.log('hi')
+            this.projects = response;
+          }else {
+            this.projects = null;
+          }
         })
         .catch(error => {
           console.log(error.response);
@@ -144,10 +158,22 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoText {
+  display: flex;
+  text-align: left;
+  margin-left: 10px;
+}
 
 .documentScanner {
   box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
   transition: 0.3s;
+  padding-bottom: 10%;
 }
 
 button {
