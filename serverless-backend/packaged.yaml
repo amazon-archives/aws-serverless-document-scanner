@@ -7,9 +7,13 @@ Parameters:
   UserPoolID:
     Type: String
     Description: (Required) The user pool ID created by the Amplify frontend.
-  UserFileBucket:
+  AmplifyStackName:
     Type: String
-    Description: (Required) The bucket where all the user files are stored.
+    Description: (Required) The stack name of the Amplify backend deployment.
+  BucketName:
+    Type: String
+    Default: ds-userfilebucket
+    Description: (Required) A unique name for the user file bucket. Must be all lowercase.
 Globals:
   Api:
     Cors:
@@ -30,12 +34,37 @@ Resources:
             Identity:
               Header: Authorization
         AddDefaultAuthorizerToCorsPreflight: false
+  UserFileBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName:
+        Ref: BucketName
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+          - '*'
+          AllowedMethods:
+          - GET
+          - PUT
+          - POST
+          - HEAD
+          - DELETE
+          AllowedOrigins:
+          - '*'
+          ExposedHeaders:
+          - x-amz-server-side-encryption
+          - x-amz-request-id
+          - x-amz-id-2
+          - ETag
+          MaxAge: 3000
+          Id: S3CorsConfig
   GeneratePDF:
     Type: AWS::Serverless::Function
     Properties:
       Handler: app.handler
       Runtime: python3.8
-      CodeUri: s3://iot-test-mo/f99e0883d6eef3dbfd13d46a66534f5a
+      CodeUri: s3://iot-test-mo/1087ee92f67613c0826d5dc82031a13a
       Layers:
       - Ref: FPDFLayer
       Policies:
@@ -69,7 +98,7 @@ Resources:
     Properties:
       Handler: app.handler
       Runtime: python3.8
-      CodeUri: s3://iot-test-mo/88f5d57455442a0ba5a871957ed6c14a
+      CodeUri: s3://iot-test-mo/25b66df61e4cdb6aa7f5f32432c1a90f
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -77,17 +106,29 @@ Resources:
       - TextractPolicy: {}
       - S3ReadPolicy:
           BucketName:
-            Ref: UserFileBucket
+            Ref: BucketName
       Environment:
         Variables:
           PAGES_TABLE_NAME:
             Ref: PagesTable
+      Events:
+        ImageUpload:
+          Type: S3
+          Properties:
+            Bucket:
+              Ref: UserFileBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                - Name: suffix
+                  Value: .png
   CreateProject:
     Type: AWS::Serverless::Function
     Properties:
       Handler: app.handler
       Runtime: python3.8
-      CodeUri: s3://iot-test-mo/31b26c3ba87a912b305058c036017fbe
+      CodeUri: s3://iot-test-mo/25d78b87ad3d6cfe804dddbcc91cd07a
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -109,7 +150,7 @@ Resources:
     Properties:
       Handler: app.handler
       Runtime: python3.8
-      CodeUri: s3://iot-test-mo/99780ad0e9c0348ecb0d910782beba2d
+      CodeUri: s3://iot-test-mo/169f0e4c049252b59817483614792f18
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -131,7 +172,7 @@ Resources:
     Properties:
       Handler: app.handler
       Runtime: python3.8
-      CodeUri: s3://iot-test-mo/bef01330df0af2a04c5a4285de074804
+      CodeUri: s3://iot-test-mo/a54237731a225988f293bffeed90037f
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -163,7 +204,7 @@ Resources:
     Properties:
       Handler: app.handler
       Runtime: python3.8
-      CodeUri: s3://iot-test-mo/f9d3954a3480d9911ceac155963bcbaa
+      CodeUri: s3://iot-test-mo/4e9b09496e9f3178dec669337071468a
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -212,8 +253,100 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: '5'
         WriteCapacityUnits: '5'
+  UserFileBucketAuthRolePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:PutObject
+          - s3:DeleteObject
+          Resource:
+          - Fn::Sub: arn:aws:s3:::${UserFileBucket}/public/*
+          - Fn::Join:
+            - ''
+            - - Fn::Sub: arn:aws:s3:::${UserFileBucket}
+              - /protected/${cognito-identity.amazonaws.com:sub}/*
+          - Fn::Join:
+            - ''
+            - - Fn::Sub: arn:aws:s3:::${UserFileBucket}
+              - /private/${cognito-identity.amazonaws.com:sub}/*
+        - Effect: Allow
+          Action:
+          - s3:PutObject
+          Resource:
+            Fn::Sub: arn:aws:s3:::${UserFileBucket}/uploads/*
+        - Effect: Allow
+          Action:
+          - s3:GetObject
+          Resource:
+            Fn::Sub: arn:aws:s3:::${UserFileBucket}/protected/*
+        - Effect: Allow
+          Action:
+          - s3:ListBucket
+          Resource:
+            Fn::Sub: arn:aws:s3:::${UserFileBucket}
+          Condition:
+            StringLike:
+              s3:prefix:
+              - public/
+              - public/*
+              - protected/
+              - protected/*
+              - private/${cognito-identity.amazonaws.com:sub}/
+              - private/${cognito-identity.amazonaws.com:sub}/*
+      Roles:
+      - Fn::Sub: ${AmplifyStackName}-authRole
+  UserFileBucketUnauthRolePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:PutObject
+          - s3:DeleteObject
+          Resource:
+            Fn::Sub: arn:aws:s3:::${UserFileBucket}/public/*
+        - Effect: Allow
+          Action:
+          - s3:PutObject
+          Resource:
+            Fn::Sub: arn:aws:s3:::${UserFileBucket}/uploads/*
+        - Effect: Allow
+          Action:
+          - s3:GetObject
+          Resource:
+            Fn::Sub: arn:aws:s3:::${UserFileBucket}/protected/*
+        - Effect: Allow
+          Action:
+          - s3:ListBucket
+          Resource:
+            Fn::Sub: arn:aws:s3:::${UserFileBucket}
+          Condition:
+            StringLike:
+              s3:prefix:
+              - public/
+              - public/*
+              - protected/
+              - protected/*
+      Roles:
+      - Fn::Sub: ${AmplifyStackName}-unauthRole
 Outputs:
   ApiURL:
     Description: API endpoint URL for Prod environment
     Value:
       Fn::Sub: https://${DocumentScannerAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod
+  UserFileBucket:
+    Description: Bucket name
+    Value:
+      Ref: UserFileBucket
+  Region:
+    Description: Region where the backend is deployed
+    Value:
+      Ref: AWS::Region

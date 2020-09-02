@@ -37,8 +37,8 @@ Amplify.configure({
     },
     Storage: {  
       AWSS3: {
-          bucket: awsconfig.aws_user_files_s3_bucket, //REQUIRED -  Amazon S3 bucket name
-          region: awsconfig.aws_user_files_s3_bucket_region, //OPTIONAL -  Amazon service region
+          bucket: apiConfig.s3_bucket_name, //REQUIRED -  Amazon S3 bucket name
+          region: apiConfig.s3_region //OPTIONAL -  Amazon service region
       }
     },
     API: {
