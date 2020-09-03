@@ -12,7 +12,7 @@ Parameters:
     Description: (Required) The stack name of the Amplify backend deployment.
   BucketName:
     Type: String
-    Description: (Required) A unique name for the user file bucket. Must be all lowercase.
+    Description: (Required) A universally unique name for the user file bucket. Must be all lowercase. 
 Globals:
   Api:
     Cors:
