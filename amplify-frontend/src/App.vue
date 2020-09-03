@@ -27,10 +27,8 @@
 
 <script>
 import DocumentScanner from './components/DocumentScanner.vue'
-import { AmplifyEventBus, components } from 'aws-amplify-vue'
+import { AmplifyEventBus } from 'aws-amplify-vue'
 import { Auth } from 'aws-amplify'
-
-import * as AmplifyVue from 'aws-amplify-vue'
 
 const signOutOptions = {
   msg: 'You are currently signed in.',
@@ -40,12 +38,11 @@ const signOutOptions = {
 export default {
   name: 'app',
   components: {
-    components,
     DocumentScanner
   },
   async beforeCreate() {
     try {
-      const user = await Auth.currentAuthenticatedUser()
+      await Auth.currentAuthenticatedUser()
       this.signedIn = true
     } catch (err) {
       this.signedIn = false

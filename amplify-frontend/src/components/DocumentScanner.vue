@@ -144,12 +144,15 @@ export default {
         });
     },
     openPDF: function () {
-      window.open(this.pdfURI, '_blank')
+      let pdfWindow = window.open("")
+      pdfWindow.document.write(
+          "<iframe width='100%' height='100%' src='" + this.pdfURI + "'></iframe>"
+      )
     },
     generatePDF: function (name) {
       let path = `/pages/pdf/${name}`;
-      
-      API
+      setTimeout(() => {  
+        API
         .get(apiName, path, {})
         .then(response => {
           this.pdfURI = response.url
@@ -158,6 +161,7 @@ export default {
         .catch(error => {
           console.log(error.response);
         });
+      }, 2000);
     },
     selectProject: function (project) {
       this.pdfURI = null
