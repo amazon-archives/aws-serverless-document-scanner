@@ -11,12 +11,11 @@ Parameters:
 
   AmplifyStackName:
     Type: String
-    Description: (Required) The stack name of the Amplify backend deployment. 
+    Description: (Required) The stack name of the Amplify backend deployment.
 
   BucketName:
     Type: String
-    Default: "ds-userfilebucket"
-    Description: (Required) A unique name for the user file bucket. Must be all lowercase.  
+    Description: (Required) A unique name for the user file bucket. Must be all lowercase.
 
 
 Globals:
@@ -47,16 +46,16 @@ Resources:
     Properties:
       BucketName: !Ref BucketName
       CorsConfiguration:
-        CorsRules: 
+        CorsRules:
           - AllowedHeaders:
-              - "*" 
-            AllowedMethods: 
+              - "*"
+            AllowedMethods:
               - GET
               - PUT
               - POST
-              - HEAD 
+              - HEAD
               - DELETE
-            AllowedOrigins: 
+            AllowedOrigins:
               - "*"
             ExposedHeaders:
               - "x-amz-server-side-encryption"
@@ -86,8 +85,8 @@ Resources:
           Properties:
             RestApiId: !Ref DocumentScannerAPI
             Path: /pages/pdf/{project+}
-            Method: get   
-  
+            Method: get
+
   FPDFLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -98,7 +97,7 @@ Resources:
           - python3.8
         LicenseInfo: 'MIT'
         RetentionPolicy: Retain
-  
+
   ProcessDocument:
     Type: AWS::Serverless::Function
     Properties:
@@ -125,7 +124,7 @@ Resources:
                 Rules:
                 - Name: suffix
                   Value: ".png"
-  
+
   CreateProject:
     Type: AWS::Serverless::Function
     Properties:
@@ -144,8 +143,8 @@ Resources:
           Properties:
             RestApiId: !Ref DocumentScannerAPI
             Path: /projects
-            Method: post   
-  
+            Method: post
+
   FetchPageCount:
     Type: AWS::Serverless::Function
     Properties:
@@ -164,8 +163,8 @@ Resources:
           Properties:
             RestApiId: !Ref DocumentScannerAPI
             Path: /pages/count/{project+}
-            Method: get  
-  
+            Method: get
+
   DeleteProject:
     Type: AWS::Serverless::Function
     Properties:
@@ -190,7 +189,7 @@ Resources:
           Properties:
             RestApiId: !Ref DocumentScannerAPI
             Path: /projects/delete
-            Method: post   
+            Method: post
 
   FetchProjects:
     Type: AWS::Serverless::Function
@@ -211,42 +210,42 @@ Resources:
             RestApiId: !Ref DocumentScannerAPI
             Path: /projects
             Method: get
-  
+
   ProjectsTable:
     Type: AWS::DynamoDB::Table
-    Properties: 
-      AttributeDefinitions: 
-        - 
+    Properties:
+      AttributeDefinitions:
+        -
           AttributeName: "username"
           AttributeType: "S"
-        - 
+        -
           AttributeName: "project_name"
           AttributeType: "S"
-      KeySchema: 
+      KeySchema:
         - AttributeName: username
           KeyType: HASH
         - AttributeName: project_name
           KeyType: RANGE
-      ProvisionedThroughput: 
+      ProvisionedThroughput:
         ReadCapacityUnits: "5"
         WriteCapacityUnits: "5"
 
   PagesTable:
     Type: AWS::DynamoDB::Table
-    Properties: 
-      AttributeDefinitions: 
-        - 
+    Properties:
+      AttributeDefinitions:
+        -
           AttributeName: "project"
           AttributeType: "S"
-        - 
+        -
           AttributeName: "page"
           AttributeType: "N"
-      KeySchema: 
+      KeySchema:
         - AttributeName: project
           KeyType: HASH
         - AttributeName: page
           KeyType: RANGE
-      ProvisionedThroughput: 
+      ProvisionedThroughput:
         ReadCapacityUnits: "5"
         WriteCapacityUnits: "5"
 
@@ -261,9 +260,9 @@ Resources:
               - "s3:GetObject"
               - "s3:PutObject"
               - "s3:DeleteObject"
-            Resource: 
+            Resource:
               - !Sub "arn:aws:s3:::${UserFileBucket}/public/*"
-              - !Join 
+              - !Join
                   - ''
                   - - !Sub "arn:aws:s3:::${UserFileBucket}"
                     - "/protected/${cognito-identity.amazonaws.com:sub}/*"
@@ -292,9 +291,9 @@ Resources:
                   - "protected/*"
                   - "private/${cognito-identity.amazonaws.com:sub}/"
                   - "private/${cognito-identity.amazonaws.com:sub}/*"
-      Roles: 
+      Roles:
         - !Sub "${AmplifyStackName}-authRole"
-  
+
   UserFileBucketUnauthRolePolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
@@ -326,7 +325,7 @@ Resources:
                   - "public/*"
                   - "protected/"
                   - "protected/*"
-      Roles: 
+      Roles:
         - !Sub "${AmplifyStackName}-unauthRole"
 Outputs:
   ApiURL:

@@ -12,7 +12,6 @@ Parameters:
     Description: (Required) The stack name of the Amplify backend deployment.
   BucketName:
     Type: String
-    Default: ds-userfilebucket
     Description: (Required) A unique name for the user file bucket. Must be all lowercase.
 Globals:
   Api:
